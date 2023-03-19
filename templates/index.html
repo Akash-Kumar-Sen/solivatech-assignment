@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Multi-Step Form</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .step {
+            display: none;
+        }
+        .step.active {
+            display: block;
+        }
+        .error-message {
+            color: red;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        select, input {
+            display: block;
+            margin-bottom: 10px;
+            padding: 5px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        button {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: #fff;
+            font-size: 16px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #3e8e41;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: default;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <form id="customer-form" class="step active">
+            {% csrf_token %}
+            <h2>Customer Info</h2>
+            <label for="first-name">First Name:</label>
+            <input type="text" id="first-name" name="first_name">
+
+            <label for="last-name">Last Name:</label>
+            <input type="text" id="last-name" name="last_name">
+
+            <label for="age">Age:</label>
+            <input type="number" id="age" name="age">
+
+            <label for="date-of-birth">Date of Birth:</label>
+            <input type="datetime-local" id="date-of-birth" name="date_of_birth">
+
+            <label for="phone">Phone:</label>
+            <input type="tel" id="phone" name="phone">
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email">
+
+            <button type="submit" id="customer-next">Next</button>
+        </form>
+
+        <form id="car-form" class="step">
+            {% csrf_token %}
+            <h2>Car Info</h2>
+            <label for="car-model-name">Car Model Name:</label>
+            <select id="car-model-name" name="car_model_name">
+                <option value="Demo Model Default">Demo Model Default</option>
+                <option value="Demo Model 1">Demo Model 1</option>
+                <option value="Demo Model 2">Demo Model 2</option>
+                <option value="Demo Model 3">Demo Model 3</option>
+                <option value="Demo Model 4">Demo Model 4</option>
+                <option value="Demo Model 5">Demo Model 5</option>
+            </select>
+            <br><br>
+
+            <label for="manufacturing-date">Manufacturing Date:</label>
+            <input type="datetime-local" id="manufacturing-date" name="manufacturing_date"><br><br>
+
+            <label for="manufacturer-info">Manufacturer Info:</label>
+            <select id="manufacturer-info" name="manufacturer_info">
+                <option value="Manufacturer Model Default">Manufacturer Model Default</option>
+                <option value="Manufacturer Model 1">Manufacturer Model 1</option>
+                <option value="Manufacturer Model 2">Manufacturer Model 2</option>
+                <option value="Manufacturer Model 3">Manufacturer Model 3</option>
+                <option value="Manufacturer Model 4">Manufacturer Model 4</option>
+                <option value="Manufacturer Model 5">Manufacturer Model 5</option>
+            </select>
+            <br><br>
+
+            <label for="color">Color:</label>
+            <select id="color" name="color">
+                <option value="Color Default">Color Default</option>
+                <option value="Color 1">Color 1</option>
+                <option value="Color 2">Color 2</option>
+            </select>
+            <br><br>
+            <button type="submit" id="car-next">Next</button>
+        </form>
+
+    </div>
+    <script>
+        const form = document.querySelector('#customer-form, #car-form');
+        const customerForm = document.querySelector('#customer-form');
+        const carForm = document.querySelector('#car-form');
+
+        customerForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const formData = new FormData(customerForm);
+        const jsonData = {};
+        for (const [key, value] of formData.entries()) {
+            jsonData[key] = value;
+        }
+        fetch('api/v1/customers/', {
+            method: 'POST',
+            body: JSON.stringify(jsonData),
+            headers: {
+            'Content-Type': 'application/json',
+            "X-CSRFToken" : '{{csrf_token}}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(error => console.error(error));
+        });
+
+        carForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const formData = new FormData(carForm);
+        const jsonData = {};
+        for (const [key, value] of formData.entries()) {
+            jsonData[key] = value;
+        }
+        fetch('api/v1/cars/', {
+            method: 'POST',
+            body: JSON.stringify(jsonData),
+            headers: {
+            'Content-Type': 'application/json',
+            "X-CSRFToken" : '{{csrf_token}}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(error => console.error(error));
+        });
+
+        $(document).ready(function() {
+            // Hide all steps except the first one
+            $('.step:not(:first)').hide();
+
+            // Show next step on click of customer-next button
+            $('#customer-next').click(function() {
+                // Hide current step
+                $(this).closest('.step').hide();
+
+                // Show next step
+                $(this).closest('.step').next('.step').show();
+            });
+        });
+    </script>
+</body>
